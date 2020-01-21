@@ -1,5 +1,12 @@
 {
   "pagination": {
+    "ListBucketsExtended": {
+      "input_token": "Marker",
+      "limit_key": "MaxKeys",
+      "more_results": "IsTruncated",
+      "output_token": "Buckets[-1].Name",
+      "result_key": "Buckets"
+    },
     "ListMultipartUploads": {
       "limit_key": "MaxUploads",
       "more_results": "IsTruncated",
@@ -13,23 +20,6 @@
       ],
       "result_key": [
         "Uploads",
-        "CommonPrefixes"
-      ]
-    },
-    "ListObjectVersions": {
-      "more_results": "IsTruncated",
-      "limit_key": "MaxKeys",
-      "output_token": [
-        "NextKeyMarker",
-        "NextVersionIdMarker"
-      ],
-      "input_token": [
-        "KeyMarker",
-        "VersionIdMarker"
-      ],
-      "result_key": [
-        "Versions",
-        "DeleteMarkers",
         "CommonPrefixes"
       ]
     },

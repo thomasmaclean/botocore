@@ -15,6 +15,7 @@ import sys
 import logging
 import functools
 import socket
+import collections
 
 import urllib3.util
 from urllib3.connection import VerifiedHTTPSConnection
@@ -22,11 +23,11 @@ from urllib3.connection import HTTPConnection
 from urllib3.connectionpool import HTTPConnectionPool
 from urllib3.connectionpool import HTTPSConnectionPool
 
-import botocore.utils
-from botocore.compat import six
-from botocore.compat import HTTPHeaders, HTTPResponse, urlunsplit, urlsplit, \
-     urlencode, MutableMapping
-from botocore.exceptions import UnseekableStreamError
+import ibm_botocore.utils
+from ibm_botocore.compat import six
+from ibm_botocore.compat import HTTPHeaders, HTTPResponse, urlunsplit, urlsplit, \
+     urlencode
+from ibm_botocore.exceptions import UnseekableStreamError
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ class AWSConnection(object):
     httplib.HTTPConnection) and we only override this class to support Expect
     100-continue, which we need for S3.  As far as I can tell, this is
     general purpose enough to not be specific to S3, but I'm being
-    tentative and keeping it in botocore because I've only tested
+    tentative and keeping it in ibm_botocore because I've only tested
     this against AWS services.
 
     """
@@ -80,6 +81,38 @@ class AWSConnection(object):
         self._response_received = False
         self._expect_header_set = False
         self.response_class = self._original_response_cls
+
+    def _tunnel(self):
+        # Works around a bug in py26 which is fixed in later versions of
+        # python. Bug involves hitting an infinite loop if readline() returns
+        # nothing as opposed to just ``\r\n``.
+        # As much as I don't like having if py2: <foo> code blocks, this seems
+        # the cleanest way to handle this workaround.  Fortunately, the
+        # difference from py26 to py3 is very minimal.  We're essentially
+        # just overriding the while loop.
+        if sys.version_info[:2] != (2, 6):
+            return super(AWSConnection, self)._tunnel()
+
+        # Otherwise we workaround the issue.
+        self._set_hostport(self._tunnel_host, self._tunnel_port)
+        self.send("CONNECT %s:%d HTTP/1.0\r\n" % (self.host, self.port))
+        for header, value in self._tunnel_headers.iteritems():
+            self.send("%s: %s\r\n" % (header, value))
+        self.send("\r\n")
+        response = self.response_class(self.sock, strict=self.strict,
+                                       method=self._method)
+        (version, code, message) = response._read_status()
+
+        if code != 200:
+            self.close()
+            raise socket.error("Tunnel connection failed: %d %s" %
+                               (code, message.strip()))
+        while True:
+            line = response.fp.readline()
+            if not line:
+                break
+            if line in (b'\r\n', b'\n', b''):
+                break
 
     def _send_request(self, method, url, body, headers, *args, **kwargs):
         self._response_received = False
@@ -254,7 +287,7 @@ def prepare_request_dict(request_dict, endpoint_url, context=None,
         # NOTE: This is to avoid circular import with utils. This is being
         # done to avoid moving classes to different modules as to not cause
         # breaking chainges.
-        percent_encode_sequence = botocore.utils.percent_encode_sequence
+        percent_encode_sequence = ibm_botocore.utils.percent_encode_sequence
         encoded_query_string = percent_encode_sequence(r['query_string'])
         if '?' not in url:
             url += '?%s' % encoded_query_string
@@ -275,7 +308,7 @@ def create_request_object(request_dict):
     :param request_dict:  The request dict (created from the
         ``prepare_request_dict`` method).
 
-    :rtype: ``botocore.awsrequest.AWSRequest``
+    :rtype: ``ibm_botocore.awsrequest.AWSRequest``
     :return: An AWSRequest object based on the request_dict.
 
     """
@@ -318,7 +351,7 @@ class AWSRequestPreparer(object):
     """
     This class performs preparation on AWSRequest objects similar to that of
     the PreparedRequest class does in the requests library. However, the logic
-    has been boiled down to meet the specific use cases in botocore. Of note
+    has been boiled down to meet the specific use cases in ibm_botocore. Of note
     there are the following differences:
         This class does not heavily prepare the URL. Requests performed many
         validations and corrections to ensure the URL is properly formatted.
@@ -418,7 +451,7 @@ class AWSRequest(object):
     """Represents the elements of an HTTP request.
 
     This class was originally inspired by requests.models.Request, but has been
-    boiled down to meet the specific use cases in botocore. That being said this
+    boiled down to meet the specific use cases in ibm_botocore. That being said this
     class (even in requests) is effectively a named-tuple.
     """
 
@@ -525,7 +558,7 @@ class AWSResponse(object):
     """A data class representing an HTTP response.
 
     This class was originally inspired by requests.models.Response, but has
-    been boiled down to meet the specific use cases in botocore. This has
+    been boiled down to meet the specific use cases in ibm_botocore. This has
     effectively been reduced to a named tuple.
 
     :ivar url: The full url.
@@ -563,7 +596,7 @@ class AWSResponse(object):
         response content into a proper text type. If the encoding is not
         present in the headers, UTF-8 is used as a default.
         """
-        encoding = botocore.utils.get_encoding_from_headers(self.headers)
+        encoding = ibm_botocore.utils.get_encoding_from_headers(self.headers)
         if encoding:
             return self.content.decode(encoding)
         else:
@@ -588,7 +621,7 @@ class _HeaderKey(object):
         return repr(self._key)
 
 
-class HeadersDict(MutableMapping):
+class HeadersDict(collections.MutableMapping):
     """A case-insenseitive dictionary to represent HTTP headers. """
     def __init__(self, *args, **kwargs):
         self._dict = {}

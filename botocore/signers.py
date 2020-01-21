@@ -15,14 +15,14 @@ import weakref
 import json
 import base64
 
-import botocore
-import botocore.auth
-from botocore.compat import six, OrderedDict
-from botocore.awsrequest import create_request_object, prepare_request_dict
-from botocore.exceptions import UnknownSignatureVersionError
-from botocore.exceptions import UnknownClientMethodError
-from botocore.exceptions import UnsupportedSignatureVersionError
-from botocore.utils import fix_s3_host, datetime2timestamp
+import ibm_botocore
+import ibm_botocore.auth
+from ibm_botocore.compat import six, OrderedDict
+from ibm_botocore.awsrequest import create_request_object, prepare_request_dict
+from ibm_botocore.exceptions import UnknownSignatureVersionError
+from ibm_botocore.exceptions import UnknownClientMethodError
+from ibm_botocore.exceptions import UnsupportedSignatureVersionError
+from ibm_botocore.utils import fix_s3_host, datetime2timestamp
 
 
 class RequestSigner(object):
@@ -39,7 +39,7 @@ class RequestSigner(object):
     and disabling signing per operation.
 
 
-    :type service_id: botocore.model.ServiceId
+    :type service_id: ibm_botocore.model.ServiceId
     :param service_id: The service id for the service, e.g. ``S3``
 
     :type region_name: string
@@ -53,10 +53,10 @@ class RequestSigner(object):
     :type signature_version: string
     :param signature_version: Signature name like ``v4``.
 
-    :type credentials: :py:class:`~botocore.credentials.Credentials`
+    :type credentials: :py:class:`~ibm_botocore.credentials.Credentials`
     :param credentials: User credentials with which to sign requests.
 
-    :type event_emitter: :py:class:`~botocore.hooks.BaseEventHooks`
+    :type event_emitter: :py:class:`~ibm_botocore.hooks.BaseEventHooks`
     :param event_emitter: Extension mechanism to fire events.
     """
     def __init__(self, service_id, region_name, signing_name,
@@ -137,7 +137,7 @@ class RequestSigner(object):
             operation_name=operation_name
         )
 
-        if signature_version != botocore.UNSIGNED:
+        if signature_version != ibm_botocore.UNSIGNED:
             kwargs = {
                 'signing_name': signing_name,
                 'region_name': region_name,
@@ -162,7 +162,7 @@ class RequestSigner(object):
     def _choose_signer(self, operation_name, signing_type, context):
         """
         Allow setting the signature version via the choose-signer event.
-        A value of `botocore.UNSIGNED` means no signing will be performed.
+        A value of `ibm_botocore.UNSIGNED` means no signing will be performed.
 
         :param operation_name: The operation to sign.
         :param signing_type: The type of signing that the signer is to be used
@@ -176,7 +176,7 @@ class RequestSigner(object):
         suffix = signing_type_suffix_map.get(signing_type, '')
 
         signature_version = self._signature_version
-        if signature_version is not botocore.UNSIGNED and not \
+        if signature_version is not ibm_botocore.UNSIGNED and not \
                 signature_version.endswith(suffix):
             signature_version += suffix
 
@@ -190,7 +190,7 @@ class RequestSigner(object):
             signature_version = response
             # The suffix needs to be checked again in case we get an improper
             # signature version from choose-signer.
-            if signature_version is not botocore.UNSIGNED and not \
+            if signature_version is not ibm_botocore.UNSIGNED and not \
                     signature_version.endswith(suffix):
                 signature_version += suffix
 
@@ -213,13 +213,13 @@ class RequestSigner(object):
         :type signature_version: string
         :param signature_version: Signature name like ``v4``.
 
-        :rtype: :py:class:`~botocore.auth.BaseSigner`
+        :rtype: :py:class:`~ibm_botocore.auth.BaseSigner`
         :return: Auth instance to sign a request.
         """
         if signature_version is None:
             signature_version = self._signature_version
 
-        cls = botocore.auth.AUTH_TYPE_MAPS.get(signature_version)
+        cls = ibm_botocore.auth.AUTH_TYPE_MAPS.get(signature_version)
         if cls is None:
             raise UnknownSignatureVersionError(
                 signature_version=signature_version)
@@ -233,7 +233,7 @@ class RequestSigner(object):
         kwargs['credentials'] = frozen_credentials
         if cls.REQUIRES_REGION:
             if self._region_name is None:
-                raise botocore.exceptions.NoRegionError()
+                raise ibm_botocore.exceptions.NoRegionError()
             kwargs['region_name'] = region_name
             kwargs['service_name'] = signing_name
         auth = cls(**kwargs)
@@ -249,7 +249,7 @@ class RequestSigner(object):
 
         :type request_dict: dict
         :param request_dict: The prepared request dictionary returned by
-            ``botocore.awsrequest.prepare_request_dict()``
+            ``ibm_botocore.awsrequest.prepare_request_dict()``
 
         :type operation_name: str
         :param operation_name: The operation being signed.
@@ -466,7 +466,7 @@ class S3PostPresigner(object):
 
         :type request_dict: dict
         :param request_dict: The prepared request dictionary returned by
-            ``botocore.awsrequest.prepare_request_dict()``
+            ``ibm_botocore.awsrequest.prepare_request_dict()``
 
         :type fields: dict
         :param fields: A dictionary of prefilled form fields to build on top
@@ -513,7 +513,7 @@ class S3PostPresigner(object):
         # Create an expiration date for the policy
         datetime_now = datetime.datetime.utcnow()
         expire_date = datetime_now + datetime.timedelta(seconds=expires_in)
-        policy['expiration'] = expire_date.strftime(botocore.auth.ISO8601)
+        policy['expiration'] = expire_date.strftime(ibm_botocore.auth.ISO8601)
 
         # Append all of the conditions that the user supplied.
         policy['conditions'] = []
@@ -718,13 +718,9 @@ def generate_presigned_post(self, Bucket, Key, Fields=None, Conditions=None,
 
 
 def _should_use_global_endpoint(client):
-    if client.meta.partition != 'aws':
-        return False
-    s3_config = client.meta.config.s3
-    if s3_config:
-        if s3_config.get('use_dualstack_endpoint', False):
-            return False
-        if s3_config.get('us_east_1_regional_endpoint') == 'regional' and \
-                client.meta.config.region_name == 'us-east-1':
-            return False
-    return True
+    use_dualstack_endpoint = False
+    if client.meta.config.s3 is not None:
+        use_dualstack_endpoint = client.meta.config.s3.get(
+            'use_dualstack_endpoint', False)
+    return (client.meta.partition == 'aws' and
+            not use_dualstack_endpoint)

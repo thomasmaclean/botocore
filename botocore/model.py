@@ -13,10 +13,10 @@
 """Abstractions to interact with service models."""
 from collections import defaultdict
 
-from botocore.utils import CachedProperty, instance_cache, hyphenize_service_id
-from botocore.compat import OrderedDict
-from botocore.exceptions import MissingServiceIdError
-from botocore.exceptions import UndefinedModelAttributeError
+from ibm_botocore.utils import CachedProperty, instance_cache, hyphenize_service_id
+from ibm_botocore.compat import OrderedDict
+from ibm_botocore.exceptions import MissingServiceIdError
+from ibm_botocore.exceptions import UndefinedModelAttributeError
 
 NOT_SET = object()
 
@@ -69,7 +69,7 @@ class Shape(object):
             associated with the key in the "shapes" dict of the
             service model (i.e ``model['shapes'][shape_name]``)
 
-        :type shape_resolver: botocore.model.ShapeResolver
+        :type shape_resolver: ibm_botocore.model.ShapeResolver
         :param shape_resolver: A shape resolver object.  This is used to
             resolve references to other shapes.  For scalar shape types
             (string, integer, boolean, etc.), this argument is not
@@ -229,7 +229,7 @@ class ServiceModel(object):
 
         :type service_description: dict
         :param service_description: The service description model.  This value
-            is obtained from a botocore.loader.Loader, or from directly loading
+            is obtained from a ibm_botocore.loader.Loader, or from directly loading
             the file yourself::
 
                 service_description = json.load(
@@ -240,7 +240,7 @@ class ServiceModel(object):
         :param service_name: The name of the service.  Normally this is
             the endpoint prefix defined in the service_description.  However,
             you can override this value to provide a more convenient name.
-            This is done in a few places in botocore (ses instead of email,
+            This is done in a few places in ibm_botocore (ses instead of email,
             emr instead of elasticmapreduce).  If this value is not provided,
             it will default to the endpointPrefix defined in the model.
 
@@ -374,7 +374,7 @@ class OperationModel(object):
             service model, and is the value associated with the operation
             name in the service model (i.e ``model['operations'][op_name]``).
 
-        :type service_model: botocore.model.ServiceModel
+        :type service_model: ibm_botocore.model.ServiceModel
         :param service_model: The service model associated with the operation.
 
         :type name: string
@@ -631,7 +631,7 @@ class DenormalizedStructureBuilder(object):
                 }
             }
         }).build_model()
-        # ``shape`` is now an instance of botocore.model.StructureShape
+        # ``shape`` is now an instance of ibm_botocore.model.StructureShape
 
     :type dict_type: class
     :param dict_type: The dictionary type to use, allowing you to opt-in
@@ -661,7 +661,7 @@ class DenormalizedStructureBuilder(object):
     def build_model(self):
         """Build the model based on the provided members.
 
-        :rtype: botocore.model.StructureShape
+        :rtype: ibm_botocore.model.StructureShape
         :return: The built StructureShape object.
 
         """

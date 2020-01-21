@@ -12,7 +12,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 """
-This module contains the main interface to the botocore package, the
+This module contains the main interface to the ibm_botocore package, the
 Session object.
 """
 
@@ -22,33 +22,33 @@ import os
 import platform
 import socket
 import warnings
+import collections
 
-from botocore import __version__
-from botocore import UNSIGNED
-import botocore.configloader
-import botocore.credentials
-import botocore.client
-from botocore.configprovider import ConfigValueStore
-from botocore.configprovider import ConfigChainFactory
-from botocore.configprovider import create_botocore_default_config_mapping
-from botocore.configprovider import BOTOCORE_DEFAUT_SESSION_VARIABLES
-from botocore.exceptions import ConfigNotFound, ProfileNotFound
-from botocore.exceptions import UnknownServiceError, PartialCredentialsError
-from botocore.errorfactory import ClientExceptionsFactory
-from botocore import handlers
-from botocore.hooks import HierarchicalEmitter, first_non_none_response
-from botocore.hooks import EventAliaser
-from botocore.loaders import create_loader
-from botocore.parsers import ResponseParserFactory
-from botocore.regions import EndpointResolver
-from botocore.model import ServiceModel
-from botocore import monitoring
-from botocore import paginate
-from botocore import waiter
-from botocore import retryhandler, translate
-from botocore import utils
-from botocore.utils import EVENT_ALIASES
-from botocore.compat import MutableMapping
+from ibm_botocore import __version__
+from ibm_botocore import UNSIGNED
+import ibm_botocore.configloader
+import ibm_botocore.credentials
+import ibm_botocore.client
+from ibm_botocore.configprovider import ConfigValueStore
+from ibm_botocore.configprovider import ConfigChainFactory
+from ibm_botocore.configprovider import create_botocore_default_config_mapping
+from ibm_botocore.configprovider import BOTOCORE_DEFAUT_SESSION_VARIABLES
+from ibm_botocore.exceptions import ConfigNotFound, ProfileNotFound
+from ibm_botocore.exceptions import UnknownServiceError, PartialCredentialsError
+from ibm_botocore.errorfactory import ClientExceptionsFactory
+from ibm_botocore import handlers
+from ibm_botocore.hooks import HierarchicalEmitter, first_non_none_response
+from ibm_botocore.hooks import EventAliaser
+from ibm_botocore.loaders import create_loader
+from ibm_botocore.parsers import ResponseParserFactory
+from ibm_botocore.regions import EndpointResolver
+from ibm_botocore.model import ServiceModel
+from ibm_botocore import monitoring
+from ibm_botocore import paginate
+from ibm_botocore import waiter
+from ibm_botocore import retryhandler, translate
+from ibm_botocore import utils
+from ibm_botocore.utils import EVENT_ALIASES
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class Session(object):
 
     SESSION_VARIABLES = copy.copy(BOTOCORE_DEFAUT_SESSION_VARIABLES)
 
-    #: The default format string to use when configuring the botocore logger.
+    #: The default format string to use when configuring the ibm_botocore logger.
     LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
     def __init__(self, session_vars=None, event_hooks=None,
@@ -103,7 +103,7 @@ class Session(object):
         self._events = EventAliaser(self._original_handler)
         if include_builtin_handlers:
             self._register_builtin_handlers(self._events)
-        self.user_agent_name = 'Botocore'
+        self.user_agent_name = 'ibm-cos-sdk-python-core'
         self.user_agent_version = __version__
         self.user_agent_extra = ''
         # The _profile attribute is just used to cache the value
@@ -145,7 +145,7 @@ class Session(object):
             'credential_provider', self._create_credential_resolver)
 
     def _create_credential_resolver(self):
-        return botocore.credentials.create_credential_resolver(
+        return ibm_botocore.credentials.create_credential_resolver(
             self, region_name=self._last_client_region_used
         )
 
@@ -351,7 +351,7 @@ class Session(object):
         if self._config is None:
             try:
                 config_file = self.get_config_variable('config_file')
-                self._config = botocore.configloader.load_config(config_file)
+                self._config = ibm_botocore.configloader.load_config(config_file)
             except ConfigNotFound:
                 self._config = {'profiles': {}}
             try:
@@ -361,7 +361,7 @@ class Session(object):
                 # can validate the user is not referring to a nonexistent
                 # profile.
                 cred_file = self.get_config_variable('credentials_file')
-                cred_profiles = botocore.configloader.raw_config_parse(
+                cred_profiles = ibm_botocore.configloader.raw_config_parse(
                     cred_file)
                 for profile in cred_profiles:
                     cred_vars = cred_profiles[profile]
@@ -376,7 +376,7 @@ class Session(object):
     def get_default_client_config(self):
         """Retrieves the default config for creating clients
 
-        :rtype: botocore.client.Config
+        :rtype: ibm_botocore.client.Config
         :returns: The default client config object when creating clients. If
             the value is ``None`` then there is no default config object
             attached to the session.
@@ -386,17 +386,19 @@ class Session(object):
     def set_default_client_config(self, client_config):
         """Sets the default config for creating clients
 
-        :type client_config: botocore.client.Config
+        :type client_config: ibm_botocore.client.Config
         :param client_config: The default client config object when creating
             clients. If the value is ``None`` then there is no default config
             object attached to the session.
         """
         self._client_config = client_config
 
-    def set_credentials(self, access_key, secret_key, token=None):
+    def set_credentials(self, access_key=None, secret_key=None, token=None,
+                        ibm_api_key_id=None, ibm_service_instance_id=None, ibm_auth_endpoint=None,
+                        auth_function=None, token_manager=None):
         """
         Manually create credentials for this session.  If you would
-        prefer to use botocore without a config file, environment variables,
+        prefer to use ibm_botocore without a config file, environment variables,
         or IAM roles, you can pass explicit credentials into this
         method to establish credentials for this session.
 
@@ -409,14 +411,38 @@ class Session(object):
         :type token: str
         :param token: An option session token used by STS session
             credentials.
+
+        :type ibm_api_key_id: str
+        :param ibm_api_key_id: IBM api key used for IAM authentication.
+
+        :type ibm_service_instance_id: str
+        :param ibm_service_instance_id: Service Instance ID used for
+            PUT bucket and GET service requests.
+
+        :type ibm_auth_endpoint: str
+        :param ibm_auth_endpoint: URL used for IAM authentication.
+
+        :type token_manager: TokenManager
+        :param token_manager: custom token manager to use.
+
+        :type auth_function: function
+        :param auth_function: function that does custom authentication
+            and returns json with token, refresh token, expiry time
+            and token type.
         """
-        self._credentials = botocore.credentials.Credentials(access_key,
-                                                             secret_key,
-                                                             token)
+        if ibm_api_key_id or auth_function or token_manager:
+            self._credentials = ibm_botocore.credentials.OAuth2Credentials(api_key_id=ibm_api_key_id,
+                                                                           service_instance_id=ibm_service_instance_id,
+                                                                           auth_endpoint=ibm_auth_endpoint,
+                                                                           auth_function=auth_function, token_manager=token_manager)
+        else:
+            self._credentials = ibm_botocore.credentials.Credentials(access_key,
+                                                                     secret_key,
+                                                                     token)
 
     def get_credentials(self):
         """
-        Return the :class:`botocore.credential.Credential` object
+        Return the :class:`ibm_botocore.credential.Credential` object
         associated with this session.  If the credentials have not
         yet been loaded, this will attempt to load them.  If they
         have already been loaded, this will return the cached
@@ -440,7 +466,7 @@ class Session(object):
          - agent_name is the value of the `user_agent_name` attribute
            of the session object (`Boto` by default).
          - agent_version is the value of the `user_agent_version`
-           attribute of the session object (the botocore version by default).
+           attribute of the session object (the ibm_botocore version by default).
            by default.
          - py_ver is the version of the Python interpreter beng used.
          - plat_name is the name of the platform (e.g. Darwin)
@@ -482,8 +508,8 @@ class Session(object):
         :param api_version: The API version of the service.  If none is
             provided, then the latest API version will be used.
 
-        :rtype: L{botocore.model.ServiceModel}
-        :return: The botocore service model for the service.
+        :rtype: L{ibm_botocore.model.ServiceModel}
+        :return: The ibm_botocore service model for the service.
 
         """
         service_description = self.get_service_data(service_name, api_version)
@@ -524,7 +550,7 @@ class Session(object):
         return self.get_component('data_loader')\
             .list_available_services(type_name='service-2')
 
-    def set_debug_logger(self, logger_name='botocore'):
+    def set_debug_logger(self, logger_name='ibm_botocore'):
         """
         Convenience function to quickly configure full debug output
         to go to the console.
@@ -571,7 +597,7 @@ class Session(object):
         # add ch to logger
         log.addHandler(ch)
 
-    def set_file_logger(self, log_level, path, logger_name='botocore'):
+    def set_file_logger(self, log_level, path, logger_name='ibm_botocore'):
         """
         Convenience function to quickly configure any level of logging
         to a file.
@@ -691,15 +717,15 @@ class Session(object):
             raise
 
     def _get_internal_component(self, name):
-        # While this method may be called by botocore classes outside of the
+        # While this method may be called by ibm_botocore classes outside of the
         # Session, this method should **never** be used by a class that lives
-        # outside of botocore.
+        # outside of ibm_botocore.
         return self._internal_components.get_component(name)
 
     def _register_internal_component(self, name, component):
-        # While this method may be called by botocore classes outside of the
+        # While this method may be called by ibm_botocore classes outside of the
         # Session, this method should **never** be used by a class that lives
-        # outside of botocore.
+        # outside of ibm_botocore.
         return self._internal_components.register_component(name, component)
 
     def register_component(self, name, component):
@@ -710,9 +736,10 @@ class Session(object):
 
     def create_client(self, service_name, region_name=None, api_version=None,
                       use_ssl=True, verify=None, endpoint_url=None,
-                      aws_access_key_id=None, aws_secret_access_key=None,
-                      aws_session_token=None, config=None):
-        """Create a botocore client.
+                      aws_access_key_id=None, aws_secret_access_key=None, aws_session_token=None,
+                      ibm_api_key_id=None, ibm_service_instance_id=None, ibm_auth_endpoint=None,
+                      auth_function=None, token_manager=None, config=None):
+        """Create a ibm_botocore client.
 
         :type service_name: string
         :param service_name: The name of the service for which a client will
@@ -724,7 +751,7 @@ class Session(object):
             A client is associated with a single region.
 
         :type api_version: string
-        :param api_version: The API version to use.  By default, botocore will
+        :param api_version: The API version to use.  By default, ibm_botocore will
             use the latest API version when creating a client.  You only need
             to specify this parameter if you want to use a previous API version
             of the client.
@@ -743,11 +770,11 @@ class Session(object):
               will not be verified.
             * path/to/cert/bundle.pem - A filename of the CA cert bundle to
               uses.  You can specify this argument if you want to use a
-              different CA cert bundle than the one used by botocore.
+              different CA cert bundle than the one used by ibm_botocore.
 
         :type endpoint_url: string
         :param endpoint_url: The complete URL to use for the constructed
-            client.  Normally, botocore will automatically construct the
+            client.  Normally, ibm_botocore will automatically construct the
             appropriate URL to use when communicating with a service.  You can
             specify a complete URL (including the "http/https" scheme) to
             override this behavior.  If this value is provided, then
@@ -768,7 +795,25 @@ class Session(object):
         :param aws_session_token: The session token to use when creating
             the client.  Same semantics as aws_access_key_id above.
 
-        :type config: botocore.client.Config
+        :type ibm_api_key_id: str
+        :param ibm_api_key_id: IBM api key used for IAM authentication.
+
+        :type ibm_service_instance_id: str
+        :param ibm_service_instance_id: Service Instance ID used for
+            PUT bucket and GET service requests.
+
+        :type ibm_auth_endpoint: str
+        :param ibm_auth_endpoint: URL used for IAM authentication.
+
+        :type token_manager: TokenManager
+        :param token_manager: custom token manager to use.
+
+        :type auth_function: function
+        :param auth_function: function that does custom authentication
+            and returns json with token, refresh token, expiry time
+            and token type.
+
+        :type config: ibm_botocore.client.Config
         :param config: Advanced client configuration options. If a value
             is specified in the client config, its value will take precedence
             over environment variables and configuration values, but not over
@@ -777,8 +822,8 @@ class Session(object):
             the client will be the result of calling ``merge()`` on the
             default config with the config provided to this call.
 
-        :rtype: botocore.client.BaseClient
-        :return: A botocore client instance
+        :rtype: ibm_botocore.client.BaseClient
+        :return: A ibm_botocore client instance
 
         """
         default_client_config = self.get_default_client_config()
@@ -808,8 +853,17 @@ class Session(object):
             'response_parser_factory')
         if config is not None and config.signature_version is UNSIGNED:
             credentials = None
+        # Precedence - if any IAM method is provided, it will be used before aws
+        elif ibm_api_key_id or auth_function or token_manager:
+            credentials = ibm_botocore.credentials.OAuth2Credentials(api_key_id=ibm_api_key_id,
+                                                                     service_instance_id=ibm_service_instance_id,
+                                                                     auth_endpoint=ibm_auth_endpoint,
+                                                                     auth_function=auth_function,
+                                                                     token_manager=token_manager,
+                                                                     verify=verify)
+            credentials.token_manager.set_from_config(config)
         elif aws_access_key_id is not None and aws_secret_access_key is not None:
-            credentials = botocore.credentials.Credentials(
+            credentials = ibm_botocore.credentials.Credentials(
                 access_key=aws_access_key_id,
                 secret_key=aws_secret_access_key,
                 token=aws_session_token)
@@ -821,10 +875,17 @@ class Session(object):
                                                  aws_secret_access_key))
         else:
             credentials = self.get_credentials()
+            if isinstance(credentials, ibm_botocore.credentials.OAuth2Credentials):
+                if isinstance(credentials.token_manager, ibm_botocore.credentials.DefaultTokenManager):
+                    credentials.token_manager.set_verify(verify)
+                    credentials.token_manager.set_from_config(config)
+                # load values that can be used for setting values in CreateBucket,ListBuckets
+                ibm_service_instance_id = credentials.service_instance_id
+
         endpoint_resolver = self._get_internal_component('endpoint_resolver')
         exceptions_factory = self._get_internal_component('exceptions_factory')
         config_store = self.get_component('config_store')
-        client_creator = botocore.client.ClientCreator(
+        client_creator = ibm_botocore.client.ClientCreator(
             loader, endpoint_resolver, self.user_agent(), event_emitter,
             retryhandler, translate, response_parser_factory,
             exceptions_factory, config_store)
@@ -836,7 +897,28 @@ class Session(object):
         monitor = self._get_internal_component('monitor')
         if monitor is not None:
             monitor.register(client.meta.events)
+            
+        # Register custom callbacks
+        self._ibm_service_instance_id = ibm_service_instance_id
+        client.meta.events.register('provide-client-params.s3.CreateBucket', self.check_service_instance_id)
+        client.meta.events.register('provide-client-params.s3.ListBuckets', self.check_service_instance_id)
+
         return client
+
+    def check_service_instance_id(self, params, **kwargs):
+        """Implements rules for IBMServiceInstanceId
+
+        1. If params already contain IBMServiceInstanceId, nothing to do
+           (because explicit values have precedence)
+        2. If params don't contain IBMServiceInstanceId, we check if
+           it is set in self.ibm_service_instance_id and if it is
+           we add it to request.
+        """
+        if 'IBMServiceInstanceId' in params:
+            return
+
+        if self._ibm_service_instance_id:
+            params['IBMServiceInstanceId'] = self._ibm_service_instance_id
 
     def _resolve_region_name(self, region_name, config):
         # Figure out the user-provided region based on the various
@@ -941,7 +1023,7 @@ class ComponentLocator(object):
             pass
 
 
-class SessionVarDict(MutableMapping):
+class SessionVarDict(collections.MutableMapping):
     def __init__(self, session, session_vars):
         self._session = session
         self._store = copy.copy(session_vars)
@@ -990,7 +1072,7 @@ class SubsetChainConfigFactory(object):
     """A class for creating backwards compatible configuration chains.
 
     This class can be used instead of
-    :class:`botocore.configprovider.ConfigChainFactory` to make it honor the
+    :class:`ibm_botocore.configprovider.ConfigChainFactory` to make it honor the
     methods argument to get_config_variable. This class can be used to filter
     out providers that are not in the methods tuple when creating a new config
     chain.
@@ -1002,13 +1084,13 @@ class SubsetChainConfigFactory(object):
     def create_config_chain(self, instance_name=None, env_var_names=None,
                             config_property_name=None, default=None,
                             conversion_func=None):
-        """Build a config chain following the standard botocore pattern.
+        """Build a config chain following the standard ibm_botocore pattern.
 
         This config chain factory will omit any providers not in the methods
         tuple provided at initialization. For example if given the tuple
         ('instance', 'config',) it will not inject the environment provider
-        into the standard config chain. This lets the botocore session support
-        the custom ``methods`` argument for all the default botocore config
+        into the standard config chain. This lets the ibm_botocore session support
+        the custom ``methods`` argument for all the default ibm_botocore config
         variables when calling ``get_config_variable``.
         """
         if 'instance' not in self._supported_methods:

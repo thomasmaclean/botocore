@@ -11,12 +11,12 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import copy
-from botocore.compat import OrderedDict
+from ibm_botocore.compat import OrderedDict
 
-from botocore.endpoint import DEFAULT_TIMEOUT, MAX_POOL_CONNECTIONS
-from botocore.exceptions import InvalidS3AddressingStyleError
-from botocore.exceptions import InvalidRetryConfigurationError
-from botocore.exceptions import InvalidMaxRetryAttemptsError
+from ibm_botocore.endpoint import DEFAULT_TIMEOUT, MAX_POOL_CONNECTIONS
+from ibm_botocore.exceptions import InvalidS3AddressingStyleError
+from ibm_botocore.exceptions import InvalidRetryConfigurationError
+from ibm_botocore.exceptions import InvalidMaxRetryAttemptsError
 
 
 class Config(object):
@@ -90,18 +90,6 @@ class Config(object):
 
           * path -- Addressing style is always by path. Endpoints will be
             addressed as such: s3.amazonaws.com/mybucket
-
-        * 'us_east_1_regional_endpoint' - Refers to what S3 endpoint to use
-          when the region is configured to be us-east-1. Values must be a
-          string that equals:
-
-           * regional -- Use the us-east-1.amazonaws.com endpoint if the
-             client is configured to use the us-east-1 region.
-
-           * legacy -- Use the s3.amazonaws.com endpoint if the client is
-             configured to use the us-east-1 region. This is the default if
-             the configuration option is not specified.
-
 
     :type retries: dict
     :param retries: A dictionary for retry specific configurations.
@@ -226,7 +214,7 @@ class Config(object):
         This will merge in all non-default values from the provided config
         and return a new config object
 
-        :type other_config: botocore.config.Config
+        :type other_config: ibm_botocore.config.Config
         :param other config: Another config object to merge with. The values
             in the provided config object will take precedence in the merging
 

@@ -13,29 +13,29 @@
 import logging
 import functools
 
-from botocore import waiter, xform_name
-from botocore.auth import AUTH_TYPE_MAPS
-from botocore.awsrequest import prepare_request_dict
-from botocore.docs.docstring import ClientMethodDocstring
-from botocore.docs.docstring import PaginatorDocstring
-from botocore.exceptions import ClientError, DataNotFoundError
-from botocore.exceptions import OperationNotPageableError
-from botocore.exceptions import UnknownSignatureVersionError
-from botocore.hooks import first_non_none_response
-from botocore.model import ServiceModel
-from botocore.paginate import Paginator
-from botocore.utils import CachedProperty
-from botocore.utils import get_service_module_name
-from botocore.utils import S3RegionRedirector
-from botocore.utils import S3ArnParamHandler
-from botocore.utils import S3EndpointSetter
-from botocore.args import ClientArgsCreator
-from botocore import UNSIGNED
+from ibm_botocore import waiter, xform_name
+from ibm_botocore.auth import AUTH_TYPE_MAPS
+from ibm_botocore.awsrequest import prepare_request_dict
+from ibm_botocore.docs.docstring import ClientMethodDocstring
+from ibm_botocore.docs.docstring import PaginatorDocstring
+from ibm_botocore.exceptions import ClientError, DataNotFoundError
+from ibm_botocore.exceptions import OperationNotPageableError
+from ibm_botocore.exceptions import UnknownSignatureVersionError
+from ibm_botocore.hooks import first_non_none_response
+from ibm_botocore.model import ServiceModel
+from ibm_botocore.paginate import Paginator
+from ibm_botocore.utils import CachedProperty
+from ibm_botocore.utils import get_service_module_name
+from ibm_botocore.utils import S3RegionRedirector
+from ibm_botocore.utils import S3ArnParamHandler
+from ibm_botocore.utils import S3EndpointSetter
+from ibm_botocore.args import ClientArgsCreator
+from ibm_botocore import UNSIGNED
 # Keep this imported.  There's pre-existing code that uses
-# "from botocore.client import Config".
-from botocore.config import Config
-from botocore.history import get_global_history_recorder
-from botocore.discovery import (
+# "from ibm_botocore.client import Config".
+from ibm_botocore.config import Config
+from ibm_botocore.history import get_global_history_recorder
+from ibm_botocore.discovery import (
     EndpointDiscoveryHandler, EndpointDiscoveryManager,
     block_endpoint_discovery_required_operations
 )
@@ -194,13 +194,9 @@ class ClientCreator(object):
         # Check to see if the region is a region that we know about. If we
         # don't know about a region, then we can safely assume it's a new
         # region that is sigv4 only, since all new S3 regions only allow sigv4.
-        # The only exception is aws-global. This is a pseudo-region for the
-        # global endpoint, we should respect the signature versions it
-        # supports, which includes v2.
         regions = self._endpoint_resolver.get_available_endpoints(
             's3', client_meta.partition)
-        if client_meta.region_name != 'aws-global' and \
-                client_meta.region_name not in regions:
+        if client_meta.region_name not in regions:
             return
 
         # If it is a region we know about, we want to default to sigv2, so here
@@ -335,14 +331,13 @@ class ClientEndpointBridge(object):
 
     def _create_endpoint(self, resolved, service_name, region_name,
                          endpoint_url, is_secure):
-        explicit_region = region_name is not None
         region_name, signing_region = self._pick_region_values(
             resolved, region_name, endpoint_url)
         if endpoint_url is None:
             if self._is_s3_dualstack_mode(service_name):
                 endpoint_url = self._create_dualstack_endpoint(
                     service_name, region_name,
-                    resolved['dnsSuffix'], is_secure, explicit_region)
+                    resolved['dnsSuffix'], is_secure)
             else:
                 # Use the sslCommonName over the hostname for Python 2.6 compat.
                 hostname = resolved.get('sslCommonName', resolved.get('hostname'))
@@ -378,12 +373,7 @@ class ClientEndpointBridge(object):
         return False
 
     def _create_dualstack_endpoint(self, service_name, region_name,
-                                   dns_suffix, is_secure, explicit_region):
-        if not explicit_region and region_name == 'aws-global':
-            # If the region_name passed was not explicitly set, default to
-            # us-east-1 instead of the modeled default aws-global. Dualstack
-            # does not support aws-global
-            region_name = 'us-east-1'
+                                   dns_suffix, is_secure):
         hostname = '{service}.dualstack.{region}.{dns_suffix}'.format(
             service=service_name, region=region_name,
             dns_suffix=dns_suffix)
@@ -652,7 +642,7 @@ class BaseClient(object):
             pageable.  You can use the ``client.can_paginate`` method to
             check if an operation is pageable.
 
-        :rtype: L{botocore.paginate.Paginator}
+        :rtype: L{ibm_botocore.paginate.Paginator}
         :return: A paginator object.
 
         """
@@ -741,7 +731,7 @@ class BaseClient(object):
             section of the service docs for a list of available waiters.
 
         :returns: The specified waiter object.
-        :rtype: botocore.waiter.Waiter
+        :rtype: ibm_botocore.waiter.Waiter
         """
         config = self._get_waiter_config()
         if not config:

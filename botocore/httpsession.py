@@ -18,11 +18,11 @@ try:
 except ImportError:
     from urllib3.util.ssl_ import SSLContext
 
-import botocore.awsrequest
-from botocore.vendored import six
-from botocore.vendored.six.moves.urllib_parse import unquote
-from botocore.compat import filter_ssl_warnings, urlparse
-from botocore.exceptions import (
+import ibm_botocore.awsrequest
+from ibm_botocore.vendored import six
+from ibm_botocore.vendored.six.moves.urllib_parse import unquote
+from ibm_botocore.compat import filter_ssl_warnings, urlparse
+from ibm_botocore.exceptions import (
     ConnectionClosedError, EndpointConnectionError, HTTPClientError,
     ReadTimeoutError, ProxyConnectionError, ConnectTimeoutError, SSLError
 )
@@ -138,7 +138,7 @@ class URLLib3Session(object):
     """A basic HTTP client that supports connection pooling and proxies.
 
     This class is inspired by requests.adapters.HTTPAdapter, but has been
-    boiled down to meet the use cases needed by botocore. For the most part
+    boiled down to meet the use cases needed by ibm_botocore. For the most part
     this classes matches the functionality of HTTPAdapter in requests v2.7.0
     (the same as our vendored version). The only major difference of note is
     that we currently do not support sending chunked requests. While requests
@@ -156,8 +156,8 @@ class URLLib3Session(object):
         self._verify = verify
         self._proxy_config = ProxyConfiguration(proxies=proxies)
         self._pool_classes_by_scheme = {
-            'http': botocore.awsrequest.AWSHTTPConnectionPool,
-            'https': botocore.awsrequest.AWSHTTPSConnectionPool,
+            'http': ibm_botocore.awsrequest.AWSHTTPConnectionPool,
+            'https': ibm_botocore.awsrequest.AWSHTTPSConnectionPool,
         }
         if timeout is None:
             timeout = DEFAULT_TIMEOUT
@@ -263,7 +263,7 @@ class URLLib3Session(object):
                 chunked=self._chunked(request.headers),
             )
 
-            http_response = botocore.awsrequest.AWSResponse(
+            http_response = ibm_botocore.awsrequest.AWSResponse(
                 request.url,
                 urllib_response.status,
                 urllib_response.headers,

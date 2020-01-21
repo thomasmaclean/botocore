@@ -14,7 +14,7 @@
 
 from binascii import crc32
 from struct import unpack
-from botocore.exceptions import EventStreamError
+from ibm_botocore.exceptions import EventStreamError
 
 # byte length of the prelude (total_length + header_length + prelude_crc)
 _PRELUDE_LENGTH = 12
@@ -527,7 +527,7 @@ class EventStream(object):
 
     **Example:**
     ::
-        from botocore.session import Session
+        from ibm_botocore.session import Session
 
         s3 = Session().create_client('s3')
         response = s3.select_object_content(

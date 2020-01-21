@@ -14,9 +14,9 @@ import time
 import logging
 import weakref
 
-from botocore import xform_name
-from botocore.exceptions import BotoCoreError, HTTPClientError, ConnectionError
-from botocore.utils import CachedProperty
+from ibm_botocore import xform_name
+from ibm_botocore.exceptions import BotoCoreError, HTTPClientError, ConnectionError
+from ibm_botocore.utils import CachedProperty
 
 logger = logging.getLogger(__name__)
 

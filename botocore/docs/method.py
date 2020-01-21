@@ -12,10 +12,10 @@
 # language governing permissions and limitations under the License.
 import inspect
 
-from botocore.docs.params import RequestParamsDocumenter
-from botocore.docs.params import ResponseParamsDocumenter
-from botocore.docs.example import ResponseExampleDocumenter
-from botocore.docs.example import RequestExampleDocumenter
+from ibm_botocore.docs.params import RequestParamsDocumenter
+from ibm_botocore.docs.params import ResponseParamsDocumenter
+from ibm_botocore.docs.example import ResponseExampleDocumenter
+from ibm_botocore.docs.example import RequestExampleDocumenter
 
 
 AWS_DOC_BASE = 'https://docs.aws.amazon.com/goto/WebAPI'

@@ -14,8 +14,8 @@ import jmespath
 import logging
 import time
 
-from botocore.utils import get_service_module_name
-from botocore.docs.docstring import WaiterDocstring
+from ibm_botocore.utils import get_service_module_name
+from ibm_botocore.docs.docstring import WaiterDocstring
 from .exceptions import WaiterError, ClientError, WaiterConfigError
 from . import xform_name
 
@@ -31,13 +31,13 @@ def create_waiter_with_client(waiter_name, waiter_model, client):
         the name (including the casing) of the key name in the waiter
         model file (typically this is CamelCasing).
 
-    :type waiter_model: botocore.waiter.WaiterModel
+    :type waiter_model: ibm_botocore.waiter.WaiterModel
     :param waiter_model: The model for the waiter configuration.
 
-    :type client: botocore.client.BaseClient
-    :param client: The botocore client associated with the service.
+    :type client: ibm_botocore.client.BaseClient
+    :param client: The ibm_botocore client associated with the service.
 
-    :rtype: botocore.waiter.Waiter
+    :rtype: ibm_botocore.waiter.Waiter
     :return: The waiter object.
 
     """
@@ -100,7 +100,7 @@ class WaiterModel(object):
         :type waiter_config: dict
         :param waiter_config: The loaded waiter config
             from the <service>*.waiters.json file.  This can be
-            obtained from a botocore Loader object as well.
+            obtained from a ibm_botocore Loader object as well.
 
         """
         self._waiter_config = waiter_config['waiters']
@@ -269,13 +269,13 @@ class Waiter(object):
         :type name: string
         :param name: The name of the waiter
 
-        :type config: botocore.waiter.SingleWaiterConfig
+        :type config: ibm_botocore.waiter.SingleWaiterConfig
         :param config: The configuration for the waiter.
 
         :type operation_method: callable
         :param operation_method: A callable that accepts **kwargs
             and returns a response.  For example, this can be
-            a method from a botocore client.
+            a method from a ibm_botocore client.
 
         """
         self._operation_method = operation_method

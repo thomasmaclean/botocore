@@ -13,15 +13,15 @@
 
 from itertools import tee
 
-from botocore.compat import six
+from ibm_botocore.compat import six
 
 import jmespath
 import json
 import base64
 import logging
-from botocore.exceptions import PaginationError
-from botocore.compat import zip
-from botocore.utils import set_value_from_jmespath, merge_dicts
+from ibm_botocore.exceptions import PaginationError
+from ibm_botocore.compat import zip
+from ibm_botocore.utils import set_value_from_jmespath, merge_dicts
 
 
 log = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ class TokenDecoder(object):
         """Decodes an opaque string to a dictionary.
 
         :type token: str
-        :param token: A token string given by the botocore pagination
+        :param token: A token string given by the ibm_botocore pagination
             interface.
 
         :rtype: dict

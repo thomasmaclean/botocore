@@ -26,13 +26,13 @@ import cgi
 import dateutil.parser
 from dateutil.tz import tzlocal, tzutc
 
-import botocore
-import botocore.awsrequest
-import botocore.httpsession
-from botocore.compat import json, quote, zip_longest, urlsplit, urlunsplit
-from botocore.compat import OrderedDict, six, urlparse
-from botocore.vendored.six.moves.urllib.request import getproxies, proxy_bypass
-from botocore.exceptions import (
+import ibm_botocore
+import ibm_botocore.awsrequest
+import ibm_botocore.httpsession
+from ibm_botocore.compat import json, quote, zip_longest, urlsplit, urlunsplit
+from ibm_botocore.compat import OrderedDict, six, urlparse
+from ibm_botocore.vendored.six.moves.urllib.request import getproxies, proxy_bypass
+from ibm_botocore.exceptions import (
     InvalidExpressionError, ConfigNotFound, InvalidDNSNameError, ClientError,
     MetadataRetrievalError, EndpointConnectionError, ReadTimeoutError,
     ConnectionClosedError, ConnectTimeoutError, UnsupportedS3ArnError,
@@ -146,7 +146,7 @@ def ensure_boolean(val):
 def is_json_value_header(shape):
     """Determines if the provided shape is the special header type jsonvalue.
 
-    :type shape: botocore.shape
+    :type shape: ibm_botocore.shape
     :param shape: Shape to be inspected for the jsonvalue trait.
 
     :return: True if this type is a jsonvalue, False otherwise
@@ -277,7 +277,7 @@ class IMDSFetcher(object):
         self._disabled = env.get('AWS_EC2_METADATA_DISABLED', 'false').lower()
         self._disabled = self._disabled == 'true'
         self._user_agent = user_agent
-        self._session = botocore.httpsession.URLLib3Session(
+        self._session = ibm_botocore.httpsession.URLLib3Session(
             timeout=self._timeout,
             proxies=get_environ_proxies(self._base_url),
         )
@@ -289,7 +289,7 @@ class IMDSFetcher(object):
             'x-aws-ec2-metadata-token-ttl-seconds': self._TOKEN_TTL,
         }
         self._add_user_agent(headers)
-        request = botocore.awsrequest.AWSRequest(
+        request = ibm_botocore.awsrequest.AWSRequest(
             method='PUT', url=url, headers=headers)
         for i in range(self._num_attempts):
             try:
@@ -334,7 +334,7 @@ class IMDSFetcher(object):
         self._add_user_agent(headers)
         for i in range(self._num_attempts):
             try:
-                request = botocore.awsrequest.AWSRequest(
+                request = ibm_botocore.awsrequest.AWSRequest(
                     method='GET', url=url, headers=headers)
                 response = self._session.send(request.prepare())
                 if not retry_func(response):
@@ -786,7 +786,7 @@ class ArgumentGenerator(object):
     """Generate sample input based on a shape model.
 
     This class contains a ``generate_skeleton`` method that will take
-    an input/output shape (created from ``botocore.model``) and generate
+    an input/output shape (created from ``ibm_botocore.model``) and generate
     a sample dictionary corresponding to the input/output shape.
 
     The specific values used are place holder values. For strings either an
@@ -800,7 +800,7 @@ class ArgumentGenerator(object):
 
     Example usage::
 
-        s = botocore.session.get_session()
+        s = ibm_botocore.session.get_session()
         ddb = s.get_service_model('dynamodb')
         arg_gen = ArgumentGenerator()
         sample_input = arg_gen.generate_skeleton(
@@ -814,7 +814,7 @@ class ArgumentGenerator(object):
     def generate_skeleton(self, shape):
         """Generate a sample input.
 
-        :type shape: ``botocore.model.Shape``
+        :type shape: ``ibm_botocore.model.Shape``
         :param shape: The input shape.
 
         :return: The generated skeleton input corresponding to the
@@ -1574,7 +1574,7 @@ class ContainerMetadataFetcher(object):
 
     def __init__(self, session=None, sleep=time.sleep):
         if session is None:
-            session = botocore.httpsession.URLLib3Session(
+            session = ibm_botocore.httpsession.URLLib3Session(
                 timeout=self.TIMEOUT_SECONDS
             )
         self._session = session
@@ -1593,7 +1593,7 @@ class ContainerMetadataFetcher(object):
         return self._retrieve_credentials(full_url, headers)
 
     def _validate_allowed_url(self, full_url):
-        parsed = botocore.compat.urlparse(full_url)
+        parsed = ibm_botocore.compat.urlparse(full_url)
         is_whitelisted_host = self._check_if_whitelisted_host(
             parsed.hostname)
         if not is_whitelisted_host:
@@ -1638,7 +1638,7 @@ class ContainerMetadataFetcher(object):
 
     def _get_response(self, full_url, headers, timeout):
         try:
-            AWSRequest = botocore.awsrequest.AWSRequest
+            AWSRequest = ibm_botocore.awsrequest.AWSRequest
             request = AWSRequest(method='GET', url=full_url, headers=headers)
             response = self._session.send(request.prepare())
             response_text = response.content.decode('utf-8')

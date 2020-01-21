@@ -4,8 +4,8 @@
 Config Reference
 ================
 
-botocore.config
+ibm_botocore.config
 ---------------
 
-.. autoclass:: botocore.config.Config
+.. autoclass:: ibm_botocore.config.Config
    :members:

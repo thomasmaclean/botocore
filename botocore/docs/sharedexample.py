@@ -12,9 +12,9 @@
 # language governing permissions and limitations under the License.
 import re
 import numbers
-from botocore.utils import parse_timestamp
-from botocore.docs.utils import escape_controls
-from botocore.compat import six
+from ibm_botocore.utils import parse_timestamp
+from ibm_botocore.docs.utils import escape_controls
+from ibm_botocore.compat import six
 
 
 class SharedExampleDocumenter(object):

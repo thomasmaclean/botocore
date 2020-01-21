@@ -16,12 +16,12 @@ import sys
 import xml.etree.cElementTree
 import logging
 
-from botocore import ScalarTypes
-from botocore.hooks import first_non_none_response
-from botocore.compat import json, set_socket_timeout, XMLParseError
-from botocore.exceptions import IncompleteReadError, ReadTimeoutError
+from ibm_botocore import ScalarTypes
+from ibm_botocore.hooks import first_non_none_response
+from ibm_botocore.compat import json, set_socket_timeout, XMLParseError
+from ibm_botocore.exceptions import IncompleteReadError, ReadTimeoutError
 from urllib3.exceptions import ReadTimeoutError as URLLib3ReadTimeoutError
-from botocore import parsers
+from ibm_botocore import parsers
 
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class StreamingBody(object):
         try:
             # To further complicate things, the way to grab the
             # underlying socket object from an HTTPResponse is different
-            # in py2 and py3.  So this code has been pushed to botocore.compat.
+            # in py2 and py3.  So this code has been pushed to ibm_botocore.compat.
             set_socket_timeout(self._raw_stream, timeout)
         except AttributeError:
             logger.error("Cannot access the socket object of "

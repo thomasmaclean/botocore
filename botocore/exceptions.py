@@ -12,8 +12,9 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import unicode_literals
-from botocore.vendored import requests
-from botocore.vendored.requests.packages import urllib3
+
+import requests
+from requests.packages import urllib3
 
 
 def _exception_from_packed_args(exception_cls, args=None, kwargs=None):
@@ -441,7 +442,7 @@ class InvalidDNSNameError(BotoCoreError):
         'hosted-style addressing cannot be used. The addressing style '
         'can be configured by removing the addressing_style value '
         'or setting that value to \'path\' or \'auto\' in the AWS Config '
-        'file or in the botocore.client.Config object.'
+        'file or in the ibm_botocore.client.Config object.'
     )
 
 
@@ -481,15 +482,6 @@ class InvalidMaxRetryAttemptsError(InvalidRetryConfigurationError):
     fmt = (
         'Value provided to "max_attempts": {provided_max_attempts} must '
         'be an integer greater than or equal to zero.'
-    )
-
-
-class InvalidS3UsEast1RegionalEndpointConfigError(BotoCoreError):
-    """Error for invalid s3 us-east-1 regional endpoints configuration"""
-    fmt = (
-        'S3 us-east-1 regional endpoint option '
-        '{s3_us_east_1_regional_endpoint_config} is '
-        'invaild. Valid options are: legacy and regional'
     )
 
 

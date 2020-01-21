@@ -13,8 +13,8 @@
 import copy
 import logging
 from collections import defaultdict, deque, namedtuple
-from botocore.compat import accepts_kwargs, six
-from botocore.utils import EVENT_ALIASES
+from ibm_botocore.compat import accepts_kwargs, six
+from ibm_botocore.utils import EVENT_ALIASES
 
 logger = logging.getLogger(__name__)
 

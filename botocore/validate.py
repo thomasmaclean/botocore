@@ -13,14 +13,14 @@ Validation Errors
 
 """
 
-from botocore.compat import six
+from ibm_botocore.compat import six
 import decimal
 import json
 from datetime import datetime
 
-from botocore.utils import parse_to_aware_datetime
-from botocore.utils import is_json_value_header
-from botocore.exceptions import ParamValidationError
+from ibm_botocore.utils import parse_to_aware_datetime
+from ibm_botocore.utils import is_json_value_header
+from ibm_botocore.exceptions import ParamValidationError
 
 
 def validate_parameters(params, shape):
@@ -36,7 +36,7 @@ def validate_parameters(params, shape):
 
     :param params: The user provided input parameters.
 
-    :type shape: botocore.model.Shape
+    :type shape: ibm_botocore.model.Shape
     :param shape: The schema which the input parameters should
         adhere to.
 

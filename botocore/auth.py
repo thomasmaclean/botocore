@@ -24,16 +24,16 @@ import time
 import calendar
 import json
 
-from botocore.exceptions import NoCredentialsError
-from botocore.utils import normalize_url_path, percent_encode_sequence
-from botocore.compat import HTTPHeaders
-from botocore.compat import quote, unquote, urlsplit, parse_qs
-from botocore.compat import urlunsplit
-from botocore.compat import encodebytes
-from botocore.compat import six
-from botocore.compat import json
-from botocore.compat import MD5_AVAILABLE
-from botocore.compat import ensure_unicode
+from ibm_botocore.exceptions import NoCredentialsError
+from ibm_botocore.utils import normalize_url_path, percent_encode_sequence
+from ibm_botocore.compat import HTTPHeaders
+from ibm_botocore.compat import quote, unquote, urlsplit, parse_qs
+from ibm_botocore.compat import urlunsplit
+from ibm_botocore.compat import encodebytes
+from ibm_botocore.compat import six
+from ibm_botocore.compat import json
+from ibm_botocore.compat import MD5_AVAILABLE
+from ibm_botocore.compat import ensure_unicode
 
 logger = logging.getLogger(__name__)
 
@@ -840,6 +840,29 @@ class HmacV1PostAuth(HmacV1Auth):
         request.context['s3-presign-post-fields'] = fields
         request.context['s3-presign-post-policy'] = policy
 
+class OAuth2(BaseSigner):
+    def __init__(self, credentials):
+        self.credentials = credentials
+
+    def add_auth(self, request):
+        # The auth handler is the last thing called in the
+        # preparation phase of a prepared request.
+        # Because of this we have to parse the query params
+        # from the request body so we can update them with
+        # the sigv2 auth params.
+        self._inject_token_to_request(request)
+        return request
+
+    def _inject_token_to_request(self, request):
+        if 'Authorization' in request.headers:
+            # We have to do this because request.headers is not
+            # normal dictionary.  It has the (unintuitive) behavior
+            # of aggregating repeated setattr calls for the same
+            # key value.  For example:
+            # headers['foo'] = 'a'; headers['foo'] = 'b'
+            # list(headers) will print ['foo', 'foo'].
+            del request.headers['Authorization']
+        request.headers['Authorization'] = ("Bearer %s" % self.credentials.token)
 
 # Defined at the bottom instead of the top of the module because the Auth
 # classes weren't defined yet.
@@ -855,5 +878,5 @@ AUTH_TYPE_MAPS = {
     's3v4': S3SigV4Auth,
     's3v4-query': S3SigV4QueryAuth,
     's3v4-presign-post': S3SigV4PostAuth,
-
+    'oauth': OAuth2
 }

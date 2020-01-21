@@ -16,7 +16,7 @@ is loaded.
 import logging
 import os
 
-from botocore import utils
+from ibm_botocore import utils
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 #: When creating a new Session object, you can pass in your own dictionary
 #: to remap the logical names or to add new logical names.  You can then
 #: get the current value for these variables by using the
-#: ``get_config_variable`` method of the :class:`botocore.session.Session`
+#: ``get_config_variable`` method of the :class:`ibm_botocore.session.Session`
 #: class.
 #: These form the keys of the dictionary.  The values in the dictionary
 #: are tuples of (<config_name>, <environment variable>, <default value>,
@@ -54,6 +54,9 @@ BOTOCORE_DEFAUT_SESSION_VARIABLES = {
     'config_file': (None, 'AWS_CONFIG_FILE', '~/.aws/config', None),
     'ca_bundle': ('ca_bundle', 'AWS_CA_BUNDLE', None, None),
     'api_versions': ('api_versions', None, {}, None),
+    
+    # This is the COS credentials file amongst sdks.
+    'cos_credentials_file': (None, 'COS_CREDENTIALS_FILE', '~/.bluemix/cos_credentials', None),
 
     # This is the shared credentials file amongst sdks.
     'credentials_file': (None, 'AWS_SHARED_CREDENTIALS_FILE',
@@ -73,7 +76,7 @@ BOTOCORE_DEFAUT_SESSION_VARIABLES = {
         'AWS_METADATA_SERVICE_NUM_ATTEMPTS', 1, int),
     'parameter_validation': ('parameter_validation', None, True, None),
     # Client side monitoring configurations.
-    # Note: These configurations are considered internal to botocore.
+    # Note: These configurations are considered internal to ibm_botocore.
     # Do not use them until publicly documented.
     'csm_enabled': (
             'csm_enabled', 'AWS_CSM_ENABLED', False, utils.ensure_boolean),
@@ -109,11 +112,6 @@ DEFAULT_S3_CONFIG_VARS = {
         ['s3_use_arn_region',
          ('s3', 'use_arn_region')],
         'AWS_S3_USE_ARN_REGION', None, utils.ensure_boolean
-    ),
-    'us_east_1_regional_endpoint': (
-        ['s3_us_east_1_regional_endpoint',
-         ('s3', 'us_east_1_regional_endpoint')],
-        'AWS_S3_US_EAST_1_REGIONAL_ENDPOINT', None, None
     )
 }
 
@@ -152,7 +150,7 @@ class ConfigChainFactory(object):
     def __init__(self, session, environ=None):
         """Initialize a ConfigChainFactory.
 
-        :type session: :class:`botocore.session.Session`
+        :type session: :class:`ibm_botocore.session.Session`
         :param session: This is the session that should be used to look up
             values from the config file.
 
@@ -168,9 +166,9 @@ class ConfigChainFactory(object):
     def create_config_chain(self, instance_name=None, env_var_names=None,
                             config_property_names=None, default=None,
                             conversion_func=None):
-        """Build a config chain following the standard botocore pattern.
+        """Build a config chain following the standard ibm_botocore pattern.
 
-        In botocore most of our config chains follow the the precendence:
+        In ibm_botocore most of our config chains follow the the precendence:
         session_instance_variables, environment, config_file, default_value.
 
         This is a convenience function for creating a chain that follow
@@ -335,7 +333,7 @@ class ConfigValueStore(object):
         :param logical_name: The name of the config value to change the config
             provider for.
 
-        :type provider: :class:`botocore.configprovider.BaseProvider`
+        :type provider: :class:`ibm_botocore.configprovider.BaseProvider`
         :param provider: The new provider that should be responsible for
             providing a value for the config named ``logical_name``.
         """
@@ -406,8 +404,8 @@ class InstanceVarProvider(BaseProvider):
         :type instance_var: str
         :param instance_var: The instance variable to load from the session.
 
-        :type session: :class:`botocore.session.Session`
-        :param session: The botocore session to get the loaded configuration
+        :type session: :class:`ibm_botocore.session.Session`
+        :param session: The ibm_botocore session to get the loaded configuration
             file variables from.
         """
         self._instance_var = instance_var
@@ -436,8 +434,8 @@ class ScopedConfigProvider(BaseProvider):
             consist of two items, where the first item represents the section
             and the second item represents the config var name in the section.
 
-        :type session: :class:`botocore.session.Session`
-        :param session: The botocore session to get the loaded configuration
+        :type session: :class:`ibm_botocore.session.Session`
+        :param session: The ibm_botocore session to get the loaded configuration
             file variables from.
         """
         self._config_var_name = config_var_name

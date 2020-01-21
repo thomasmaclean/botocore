@@ -13,7 +13,7 @@
 
 """Builtin event handlers.
 
-This module contains builtin handlers for events emitted by botocore.
+This module contains builtin handlers for events emitted by ibm_botocore.
 """
 
 import base64
@@ -24,27 +24,27 @@ import re
 import warnings
 import uuid
 
-from botocore.compat import unquote, json, six, unquote_str, \
+from ibm_botocore.compat import unquote, json, six, unquote_str, \
     ensure_bytes, get_md5, MD5_AVAILABLE, OrderedDict, urlsplit, urlunsplit
-from botocore.docs.utils import AutoPopulatedParam
-from botocore.docs.utils import HideParamFromOperations
-from botocore.docs.utils import AppendParamDocumentation
-from botocore.signers import add_generate_presigned_url
-from botocore.signers import add_generate_presigned_post
-from botocore.signers import add_generate_db_auth_token
-from botocore.exceptions import ParamValidationError
-from botocore.exceptions import AliasConflictParameterError
-from botocore.exceptions import UnsupportedTLSVersionWarning
-from botocore.exceptions import MissingServiceIdError
-from botocore.utils import percent_encode, SAFE_CHARS
-from botocore.utils import switch_host_with_param
-from botocore.utils import hyphenize_service_id
+from ibm_botocore.docs.utils import AutoPopulatedParam
+from ibm_botocore.docs.utils import HideParamFromOperations
+from ibm_botocore.docs.utils import AppendParamDocumentation
+from ibm_botocore.signers import add_generate_presigned_url
+from ibm_botocore.signers import add_generate_presigned_post
+from ibm_botocore.signers import add_generate_db_auth_token
+from ibm_botocore.exceptions import ParamValidationError
+from ibm_botocore.exceptions import AliasConflictParameterError
+from ibm_botocore.exceptions import UnsupportedTLSVersionWarning
+from ibm_botocore.exceptions import MissingServiceIdError
+from ibm_botocore.utils import percent_encode, SAFE_CHARS
+from ibm_botocore.utils import switch_host_with_param
+from ibm_botocore.utils import hyphenize_service_id
 
-from botocore import retryhandler
-from botocore import utils
-from botocore import translate
-import botocore
-import botocore.auth
+from ibm_botocore import retryhandler
+from ibm_botocore import utils
+from ibm_botocore import translate
+import ibm_botocore
+import ibm_botocore.auth
 
 
 logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ def set_operation_specific_signer(context, signing_name, **kwargs):
     # Auth type will be the string value 'none' if the operation should not
     # be signed at all.
     if auth_type == 'none':
-        return botocore.UNSIGNED
+        return ibm_botocore.UNSIGNED
 
     if auth_type.startswith('v4'):
         signature_version = 'v4'
@@ -274,7 +274,7 @@ def disable_signing(**kwargs):
     This handler disables request signing by setting the signer
     name to a special sentinel value.
     """
-    return botocore.UNSIGNED
+    return ibm_botocore.UNSIGNED
 
 
 def add_expect_header(model, params, **kwargs):
@@ -628,7 +628,7 @@ def document_glacier_tree_hash_checksum():
         previous uploaded parts, using the algorithm described in
         `Glacier documentation <http://docs.aws.amazon.com/amazonglacier/latest/dev/checksum-calculations.html>`_.
 
-        But if you prefer, you can also use botocore.utils.calculate_tree_hash()
+        But if you prefer, you can also use ibm_botocore.utils.calculate_tree_hash()
         to compute it from raw file by::
 
             checksum = calculate_tree_hash(open('your_file.txt', 'rb'))
@@ -954,13 +954,12 @@ BUILTIN_HANDLERS = [
     ('before-call.s3.PutBucketLogging', conditionally_calculate_md5),
     ('before-call.s3.PutBucketNotification', conditionally_calculate_md5),
     ('before-call.s3.PutBucketPolicy', conditionally_calculate_md5),
+    ('before-call.s3.PutBucketProtectionConfiguration', calculate_md5),
     ('before-call.s3.PutBucketRequestPayment', conditionally_calculate_md5),
     ('before-call.s3.PutBucketVersioning', conditionally_calculate_md5),
     ('before-call.s3.PutBucketWebsite', conditionally_calculate_md5),
     ('before-call.s3.PutObjectAcl', conditionally_calculate_md5),
-    ('before-call.s3.PutObjectLegalHold', calculate_md5),
-    ('before-call.s3.PutObjectRetention', calculate_md5),
-    ('before-call.s3.PutObjectLockConfiguration', calculate_md5),
+    ('before-call.s3.CompleteMultipartUpload', conditionally_calculate_md5),
 
     ('before-parameter-build.s3.CopyObject',
      handle_copy_source_param),
@@ -974,23 +973,10 @@ BUILTIN_HANDLERS = [
     ('docs.*.s3.UploadPartCopy.complete-section', document_copy_source_form),
 
     ('before-call.s3', add_expect_header),
-    ('before-call.glacier', add_glacier_version),
-    ('before-call.apigateway', add_accept_header),
-    ('before-call.glacier.UploadArchive', add_glacier_checksums),
-    ('before-call.glacier.UploadMultipartPart', add_glacier_checksums),
-    ('before-call.ec2.CopySnapshot', inject_presigned_url_ec2),
-    ('request-created.machinelearning.Predict', switch_host_machinelearning),
     ('needs-retry.s3.UploadPartCopy', check_for_200_error, REGISTER_FIRST),
     ('needs-retry.s3.CopyObject', check_for_200_error, REGISTER_FIRST),
     ('needs-retry.s3.CompleteMultipartUpload', check_for_200_error,
      REGISTER_FIRST),
-    ('choose-signer.cognito-identity.GetId', disable_signing),
-    ('choose-signer.cognito-identity.GetOpenIdToken', disable_signing),
-    ('choose-signer.cognito-identity.UnlinkIdentity', disable_signing),
-    ('choose-signer.cognito-identity.GetCredentialsForIdentity',
-        disable_signing),
-    ('choose-signer.sts.AssumeRoleWithSAML', disable_signing),
-    ('choose-signer.sts.AssumeRoleWithWebIdentity', disable_signing),
     ('choose-signer', set_operation_specific_signer),
     ('before-parameter-build.s3.HeadObject', sse_md5),
     ('before-parameter-build.s3.GetObject', sse_md5),
@@ -1002,43 +988,9 @@ BUILTIN_HANDLERS = [
     ('before-parameter-build.s3.UploadPartCopy', sse_md5),
     ('before-parameter-build.s3.UploadPartCopy', copy_source_sse_md5),
     ('before-parameter-build.ec2.RunInstances', base64_encode_user_data),
-    ('before-parameter-build.autoscaling.CreateLaunchConfiguration',
-     base64_encode_user_data),
-    ('before-parameter-build.route53', fix_route53_ids),
-    ('before-parameter-build.glacier', inject_account_id),
     ('after-call.s3.ListObjects', decode_list_object),
     ('after-call.s3.ListObjectsV2', decode_list_object_v2),
-    ('after-call.s3.ListObjectVersions', decode_list_object_versions),
 
-    # Cloudsearchdomain search operation will be sent by HTTP POST
-    ('request-created.cloudsearchdomain.Search',
-     change_get_to_post),
-    # Glacier documentation customizations
-    ('docs.*.glacier.*.complete-section',
-     AutoPopulatedParam('accountId', 'Note: this parameter is set to "-" by'
-                        'default if no value is not specified.')
-     .document_auto_populated_param),
-    ('docs.*.glacier.UploadArchive.complete-section',
-     AutoPopulatedParam('checksum').document_auto_populated_param),
-    ('docs.*.glacier.UploadMultipartPart.complete-section',
-     AutoPopulatedParam('checksum').document_auto_populated_param),
-    ('docs.request-params.glacier.CompleteMultipartUpload.complete-section',
-     document_glacier_tree_hash_checksum()),
-    # Cloudformation documentation customizations
-    ('docs.*.cloudformation.GetTemplate.complete-section',
-     document_cloudformation_get_template_return_type),
-
-    # UserData base64 encoding documentation customizations
-    ('docs.*.ec2.RunInstances.complete-section',
-     document_base64_encoding('UserData')),
-    ('docs.*.autoscaling.CreateLaunchConfiguration.complete-section',
-     document_base64_encoding('UserData')),
-
-    # EC2 CopySnapshot documentation customizations
-    ('docs.*.ec2.CopySnapshot.complete-section',
-     AutoPopulatedParam('PresignedUrl').document_auto_populated_param),
-    ('docs.*.ec2.CopySnapshot.complete-section',
-     AutoPopulatedParam('DestinationRegion').document_auto_populated_param),
     # S3 SSE documentation modifications
     ('docs.*.s3.*.complete-section',
      AutoPopulatedParam('SSECustomerKeyMD5').document_auto_populated_param),
@@ -1046,9 +998,6 @@ BUILTIN_HANDLERS = [
     ('docs.*.s3.*.complete-section',
      AutoPopulatedParam(
         'CopySourceSSECustomerKeyMD5').document_auto_populated_param),
-    # Add base64 information to Lambda
-    ('docs.*.lambda.UpdateFunctionCode.complete-section',
-     document_base64_encoding('ZipFile')),
     # The following S3 operations cannot actually accept a ContentMD5
     ('docs.*.s3.*.complete-section',
      HideParamFromOperations(
@@ -1057,59 +1006,6 @@ BUILTIN_HANDLERS = [
           'PutBucketLifecycle', 'PutBucketLogging', 'PutBucketNotification',
           'PutBucketPolicy', 'PutBucketReplication', 'PutBucketRequestPayment',
           'PutBucketTagging', 'PutBucketVersioning', 'PutBucketWebsite',
-          'PutObjectAcl']).hide_param),
-
-    #############
-    # RDS
-    #############
-    ('creating-client-class.rds', add_generate_db_auth_token),
-
-    ('before-call.rds.CopyDBClusterSnapshot',
-     inject_presigned_url_rds),
-    ('before-call.rds.CreateDBCluster',
-     inject_presigned_url_rds),
-    ('before-call.rds.CopyDBSnapshot',
-     inject_presigned_url_rds),
-    ('before-call.rds.CreateDBInstanceReadReplica',
-     inject_presigned_url_rds),
-
-    # RDS PresignedUrl documentation customizations
-    ('docs.*.rds.CopyDBClusterSnapshot.complete-section',
-     AutoPopulatedParam('PreSignedUrl').document_auto_populated_param),
-    ('docs.*.rds.CreateDBCluster.complete-section',
-     AutoPopulatedParam('PreSignedUrl').document_auto_populated_param),
-    ('docs.*.rds.CopyDBSnapshot.complete-section',
-     AutoPopulatedParam('PreSignedUrl').document_auto_populated_param),
-    ('docs.*.rds.CreateDBInstanceReadReplica.complete-section',
-     AutoPopulatedParam('PreSignedUrl').document_auto_populated_param),
-
-    #############
-    # Neptune
-    #############
-    ('before-call.neptune.CopyDBClusterSnapshot',
-     inject_presigned_url_rds),
-    ('before-call.neptune.CreateDBCluster',
-     inject_presigned_url_rds),
-
-    # RDS PresignedUrl documentation customizations
-    ('docs.*.neptune.CopyDBClusterSnapshot.complete-section',
-     AutoPopulatedParam('PreSignedUrl').document_auto_populated_param),
-    ('docs.*.neptune.CreateDBCluster.complete-section',
-     AutoPopulatedParam('PreSignedUrl').document_auto_populated_param),
-
-    #############
-    # S3 Control
-    #############
-    ('before-call.s3-control.*',
-     HeaderToHostHoister('x-amz-account-id').hoist),
-
-    ###########
-    # SMS Voice
-     ##########
-    ('docs.title.sms-voice',
-     DeprecatedServiceDocumenter(
-         'pinpoint-sms-voice').inject_deprecation_notice),
-    ('before-call', inject_api_version_header_if_needed),
-
+          'PutObjectAcl']).hide_param)
 ]
 _add_parameter_aliases(BUILTIN_HANDLERS)

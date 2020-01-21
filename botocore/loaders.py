@@ -13,7 +13,7 @@
 """Module for loading various model files.
 
 This module provides the classes that are used to load models used
-by botocore.  This can include:
+by ibm_botocore.  This can include:
 
     * Service models (e.g. the model for EC2, S3, DynamoDB, etc.)
     * Service model extras which customize the service models
@@ -35,12 +35,12 @@ The Search Path
 
 Similar to how the PATH environment variable is to finding executables
 and the PYTHONPATH environment variable is to finding python modules
-to import, the botocore loaders have the concept of a data path exposed
+to import, the ibm_botocore loaders have the concept of a data path exposed
 through AWS_DATA_PATH.
 
 This enables end users to provide additional search paths where we
 will attempt to load models outside of the models we ship with
-botocore.  When you create a ``Loader``, there are two paths
+ibm_botocore.  When you create a ``Loader``, there are two paths
 automatically added to the model search path:
 
     * <botocore root>/data/
@@ -104,11 +104,11 @@ which don't represent the actual service api.
 import os
 import logging
 
-from botocore import BOTOCORE_ROOT
-from botocore.compat import json
-from botocore.compat import OrderedDict
-from botocore.exceptions import DataNotFoundError, UnknownServiceError
-from botocore.utils import deep_merge
+from ibm_botocore import BOTOCORE_ROOT
+from ibm_botocore.compat import json
+from ibm_botocore.compat import OrderedDict
+from ibm_botocore.exceptions import DataNotFoundError, UnknownServiceError
+from ibm_botocore.utils import deep_merge
 
 
 logger = logging.getLogger(__name__)
@@ -209,7 +209,7 @@ class Loader(object):
 
     """
     FILE_LOADER_CLASS = JSONFileLoader
-    # The included models in botocore/data/ that we ship with botocore.
+    # The included models in botocore/data/ that we ship with ibm_botocore.
     BUILTIN_DATA_PATH = os.path.join(BOTOCORE_ROOT, 'data')
     # For convenience we automatically add ~/.aws/models to the data path.
     CUSTOMER_DATA_PATH = os.path.join(os.path.expanduser('~'),
@@ -341,9 +341,9 @@ class Loader(object):
 
     @instance_cache
     def load_service_model(self, service_name, type_name, api_version=None):
-        """Load a botocore service model
+        """Load a ibm_botocore service model
 
-        This is the main method for loading botocore models (e.g. a service
+        This is the main method for loading ibm_botocore models (e.g. a service
         model, pagination configs, waiter configs, etc.).
 
         :type service_name: str

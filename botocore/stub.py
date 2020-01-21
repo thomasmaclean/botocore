@@ -14,10 +14,10 @@ import copy
 from collections import deque
 from pprint import pformat
 
-from botocore.validate import validate_parameters
-from botocore.exceptions import ParamValidationError, \
+from ibm_botocore.validate import validate_parameters
+from ibm_botocore.exceptions import ParamValidationError, \
     StubResponseError, StubAssertionError, UnStubbedResponseError
-from botocore.awsrequest import AWSResponse
+from ibm_botocore.awsrequest import AWSResponse
 
 
 class _ANY(object):
@@ -48,11 +48,11 @@ class Stubber(object):
     **Example:**
     ::
         import datetime
-        import botocore.session
-        from botocore.stub import Stubber
+        import ibm_botocore.session
+        from ibm_botocore.stub import Stubber
 
 
-        s3 = botocore.session.get_session().create_client('s3')
+        s3 = ibm_botocore.session.get_session().create_client('s3')
         stubber = Stubber(s3)
 
         response = {
@@ -91,11 +91,11 @@ class Stubber(object):
     **Example:**
     ::
         import datetime
-        import botocore.session
-        from botocore.stub import Stubber
+        import ibm_botocore.session
+        from ibm_botocore.stub import Stubber
 
 
-        s3 = botocore.session.get_session().create_client('s3')
+        s3 = ibm_botocore.session.get_session().create_client('s3')
 
         response = {
             "Owner": {
@@ -123,11 +123,11 @@ class Stubber(object):
     **Example:**
     ::
         import datetime
-        import botocore.session
-        from botocore.stub import Stubber, ANY
+        import ibm_botocore.session
+        from ibm_botocore.stub import Stubber, ANY
 
 
-        s3 = botocore.session.get_session().create_client('s3')
+        s3 = ibm_botocore.session.get_session().create_client('s3')
         stubber = Stubber(s3)
 
         response = {

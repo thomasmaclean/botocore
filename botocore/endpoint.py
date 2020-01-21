@@ -17,16 +17,16 @@ import logging
 import time
 import threading
 
-from botocore.vendored import six
+from ibm_botocore.vendored import six
 
-from botocore.awsrequest import create_request_object
-from botocore.exceptions import HTTPClientError
-from botocore.httpsession import URLLib3Session
-from botocore.utils import is_valid_endpoint_url, get_environ_proxies
-from botocore.hooks import first_non_none_response
-from botocore.history import get_global_history_recorder
-from botocore.response import StreamingBody
-from botocore import parsers
+from ibm_botocore.awsrequest import create_request_object
+from ibm_botocore.exceptions import HTTPClientError
+from ibm_botocore.httpsession import URLLib3Session
+from ibm_botocore.utils import is_valid_endpoint_url, get_environ_proxies
+from ibm_botocore.hooks import first_non_none_response
+from ibm_botocore.history import get_global_history_recorder
+from ibm_botocore.response import StreamingBody
+from ibm_botocore import parsers
 
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ def convert_to_response_dict(http_response, operation_model):
     This converts the requests library's HTTP response object to
     a dictionary.
 
-    :type http_response: botocore.vendored.requests.model.Response
+    :type http_response: ibm_botocore.vendored.requests.model.Response
     :param http_response: The HTTP response from an AWS service request.
 
     :rtype: dict

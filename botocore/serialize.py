@@ -43,13 +43,13 @@ import calendar
 import datetime
 from xml.etree import ElementTree
 
-from botocore.compat import six
+from ibm_botocore.compat import six
 
-from botocore.compat import json, formatdate
-from botocore.utils import parse_to_aware_datetime
-from botocore.utils import percent_encode
-from botocore.utils import is_json_value_header
-from botocore import validate
+from ibm_botocore.compat import json, formatdate
+from ibm_botocore.utils import parse_to_aware_datetime
+from ibm_botocore.utils import percent_encode
+from ibm_botocore.utils import is_json_value_header
+from ibm_botocore import validate
 
 
 # From the spec, the default timestamp format if not specified is iso8601.

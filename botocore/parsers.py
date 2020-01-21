@@ -120,10 +120,10 @@ import json
 import xml.etree.cElementTree
 import logging
 
-from botocore.compat import six, XMLParseError
-from botocore.eventstream import EventStream, NoInitialResponseError
+from ibm_botocore.compat import six, XMLParseError
+from ibm_botocore.eventstream import EventStream, NoInitialResponseError
 
-from botocore.utils import parse_timestamp, merge_dicts, \
+from ibm_botocore.utils import parse_timestamp, merge_dicts, \
     is_json_value_header, lowercase_dict
 
 LOG = logging.getLogger(__name__)
@@ -782,7 +782,7 @@ class BaseRestParser(ResponseParser):
             metadata['RequestId'] = headers['x-amzn-requestid']
         elif 'x-amz-request-id' in headers:
             metadata['RequestId'] = headers['x-amz-request-id']
-            # HostId is what it's called whenever this value is returned
+            # HostId is what it's called whenver this value is returned
             # in an XML response body, so to be consistent, we'll always
             # call is HostId.
             metadata['HostId'] = headers.get('x-amz-id-2', '')

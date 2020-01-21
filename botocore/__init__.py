@@ -16,7 +16,8 @@ import os
 import re
 import logging
 
-__version__ = '1.14.7'
+__author__ = 'IBM'
+__version__ = '2.6.0'
 
 
 class NullHandler(logging.Handler):
@@ -24,7 +25,7 @@ class NullHandler(logging.Handler):
         pass
 
 # Configure default logger to do nothing
-log = logging.getLogger('botocore')
+log = logging.getLogger('ibm_botocore')
 log.addHandler(NullHandler())
 
 

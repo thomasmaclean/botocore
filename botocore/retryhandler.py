@@ -17,7 +17,7 @@ import functools
 import logging
 from binascii import crc32
 
-from botocore.exceptions import (
+from ibm_botocore.exceptions import (
     ChecksumError, EndpointConnectionError, ReadTimeoutError,
     ConnectionError, ConnectionClosedError,
 )
